@@ -812,33 +812,52 @@ import {
     }
   });
 
+  let moodBurstTimer = null;
+
   function triggerMoodBurst(sourceImg) {
     const rect = sourceImg.getBoundingClientRect();
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const tx = vw / 2 - centerX;
-    const ty = vh / 2 - centerY;
-    const scale = (Math.max(vw, vh) / Math.max(rect.width, rect.height)) * 1.5;
 
+    // grow to fill most of the viewport while keeping the image's real aspect ratio,
+    // so the browser re-lays-out (and re-rasterizes) the image at each size instead of
+    // just stretching a small cached texture — that stretching is what looked "broken".
+    const naturalRatio = sourceImg.naturalWidth && sourceImg.naturalHeight ? sourceImg.naturalWidth / sourceImg.naturalHeight : 1;
+    const maxW = vw * 0.8;
+    const maxH = vh * 0.7;
+    let targetW = maxW;
+    let targetH = targetW / naturalRatio;
+    if (targetH > maxH) {
+      targetH = maxH;
+      targetW = targetH * naturalRatio;
+    }
+    const targetLeft = (vw - targetW) / 2;
+    const targetTop = (vh - targetH) / 2;
+
+    clearTimeout(moodBurstTimer);
     moodBurstImageEl.src = sourceImg.src;
+    moodBurstImageEl.classList.add("burst");
+    moodBurstImageEl.style.transition = "none";
     moodBurstImageEl.style.left = `${rect.left}px`;
     moodBurstImageEl.style.top = `${rect.top}px`;
     moodBurstImageEl.style.width = `${rect.width}px`;
     moodBurstImageEl.style.height = `${rect.height}px`;
-    moodBurstImageEl.style.setProperty("--mb-tx", `${tx}px`);
-    moodBurstImageEl.style.setProperty("--mb-ty", `${ty}px`);
-    moodBurstImageEl.style.setProperty("--mb-scale", scale);
+    moodBurstImageEl.style.opacity = "1";
 
-    moodBurstImageEl.classList.remove("burst");
-    void moodBurstImageEl.offsetWidth; // force reflow so the animation restarts
-    moodBurstImageEl.classList.add("burst");
+    void moodBurstImageEl.offsetWidth; // force reflow so the transition below actually animates
+
+    moodBurstImageEl.style.transition =
+      "left 0.9s ease-out, top 0.9s ease-out, width 0.9s ease-out, height 0.9s ease-out, opacity 0.6s ease-in 0.9s";
+    moodBurstImageEl.style.left = `${targetLeft}px`;
+    moodBurstImageEl.style.top = `${targetTop}px`;
+    moodBurstImageEl.style.width = `${targetW}px`;
+    moodBurstImageEl.style.height = `${targetH}px`;
+    moodBurstImageEl.style.opacity = "0";
+
+    moodBurstTimer = setTimeout(() => {
+      moodBurstImageEl.classList.remove("burst");
+    }, 1550);
   }
-
-  moodBurstImageEl.addEventListener("animationend", () => {
-    moodBurstImageEl.classList.remove("burst");
-  });
 
   waterPlusBtn.addEventListener("click", () => {
     if (!isViewingSelf()) return;
