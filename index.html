@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>윤서랑 다이어트 하실라우?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ================= 온보딩 (그룹 생성/참여) ================= -->
+  <div class="onboarding" id="onboarding">
+    <div class="onboarding-card">
+      <h1>윤서랑 다이어트 하실라우?</h1>
+      <p class="tagline">나랑 다이어트 열심히 해서 새로 태어날 사람~ ٩(๑°▹｡)۶</p>
+
+      <p class="config-warning" id="configWarning" hidden>
+        ⚠️ Firebase 설정이 아직 되어있지 않아요. firebase-config.js를 채운 뒤 SETUP.md를 확인해주세요.
+      </p>
+
+      <div class="onboarding-tabs">
+        <button class="ob-tab active" id="obTabCreate" data-tab="create">새 그룹 만들기</button>
+        <button class="ob-tab" id="obTabJoin" data-tab="join">코드로 참여하기</button>
+      </div>
+
+      <div class="ob-panel" id="obCreate">
+        <label class="field-label">닉네임</label>
+        <input type="text" id="createName" class="note-input" placeholder="예: 민지" maxlength="12" />
+        <button class="save-btn ob-submit" id="createGroupBtn">그룹 만들기</button>
+      </div>
+
+      <div class="ob-panel" id="obJoin" hidden>
+        <label class="field-label">닉네임</label>
+        <input type="text" id="joinName" class="note-input" placeholder="예: 지훈" maxlength="12" />
+        <label class="field-label ob-code-label">그룹 코드</label>
+        <input type="text" id="joinCode" class="note-input code-input" placeholder="예: A3F9K" maxlength="6" />
+        <button class="save-btn ob-submit" id="joinGroupBtn">참여하기</button>
+      </div>
+
+      <p class="ob-error" id="obError"></p>
+    </div>
+  </div>
+
+  <!-- ================= 메인 앱 ================= -->
+  <div class="app" id="appRoot" hidden>
+
+    <header class="top">
+      <h1>윤서랑 다이어트 하실라우?</h1>
+      <p class="tagline">기록 퍼뜩 업로드 안하면 사랑의 눈초리를 보낼 것임( ,,•̀⤙•́,, )</p>
+    </header>
+
+    <div class="group-bar">
+      <div class="group-code-chip">
+        <span class="group-code-label">그룹 코드</span>
+        <span class="group-code-value" id="groupCodeValue">------</span>
+        <button class="copy-btn" id="copyCodeBtn">복사</button>
+      </div>
+      <span class="member-count" id="memberCount"></span>
+      <button class="text-btn" id="leaveGroupBtn">그룹 나가기</button>
+    </div>
+
+    <section class="card friend-status-card">
+      <h2>오늘의 친구 현황</h2>
+      <div class="friend-status-list" id="friendStatusList"></div>
+    </section>
+
+    <nav class="user-switch" id="userSwitch">
+      <!-- member tabs rendered by JS -->
+    </nav>
+
+    <main class="layout">
+
+      <!-- 캘린더 영역 -->
+      <section class="card calendar-card">
+        <div class="calendar-header">
+          <button class="icon-btn" id="prevMonth" aria-label="이전 달">‹</button>
+          <h2 id="monthLabel">2026년 7월</h2>
+          <button class="icon-btn" id="nextMonth" aria-label="다음 달">›</button>
+        </div>
+
+        <div class="weekdays">
+          <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+        </div>
+
+        <div class="calendar-grid" id="calendarGrid"></div>
+
+        <div class="legend">
+          <span class="legend-item"><i class="dot weight-dot"></i>몸무게 기록</span>
+          <span class="legend-item"><i class="dot exercise-dot"></i>운동 완료</span>
+          <span class="legend-item"><i class="dot water-dot"></i>물 목표 달성</span>
+        </div>
+      </section>
+
+      <!-- 선택한 날짜 상세 기록 -->
+      <section class="card detail-card">
+        <div class="detail-header">
+          <h2 id="selectedDateLabel">날짜를 선택하세요</h2>
+        </div>
+
+        <p class="readonly-banner" id="readonlyBanner" hidden>👀 친구의 기록이에요 · 읽기 전용</p>
+
+        <div class="field-group">
+          <div class="weight-label-row">
+            <label class="field-label">몸무게</label>
+            <button class="lock-toggle-btn" id="weightLockToggle">🔓 공개</button>
+          </div>
+          <div class="weight-row">
+            <input type="number" id="weightInput" placeholder="0.0" step="0.1" min="0" />
+            <span class="unit">kg</span>
+            <span class="trend" id="weightTrend"></span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">운동 체크리스트</label>
+          <ul class="exercise-list" id="exerciseList"></ul>
+          <p class="exercise-empty" id="exerciseEmpty">아직 추가한 운동이 없어요</p>
+          <div class="exercise-add-row" id="exerciseAddRow">
+            <input type="text" id="exerciseItemInput" class="note-input" placeholder="예: 스쿼트 20개" maxlength="40" />
+            <button class="add-item-btn" id="addExerciseItemBtn">추가</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">물 섭취량 <span class="sub-label">(한 잔 = 250ml)</span></label>
+          <div class="water-row">
+            <button class="icon-btn round" id="waterMinus" aria-label="물 한 잔 빼기">－</button>
+            <div class="glasses" id="glasses"></div>
+            <button class="icon-btn round" id="waterPlus" aria-label="물 한 잔 더하기">＋</button>
+          </div>
+          <p class="water-caption" id="waterCaption"></p>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">오늘의 상태</label>
+          <div class="mood-picker" id="moodPicker">
+            <button class="mood-option" type="button" data-mood="tired">
+              <img src="assets/mood-tired.png" alt="힘들어요" />
+              <span class="mood-label">힘들어요</span>
+            </button>
+            <button class="mood-option" type="button" data-mood="stuffed">
+              <img src="assets/mood-stuffed.png" alt="배불러요" />
+              <span class="mood-label">배불러요</span>
+            </button>
+            <button class="mood-option" type="button" data-mood="happy">
+              <img src="assets/mood-happy.png" alt="만족해요" />
+              <span class="mood-label">만족해요</span>
+            </button>
+            <button class="mood-option" type="button" data-mood="failed">
+              <img src="assets/mood-failed.png" alt="실패함요" />
+              <span class="mood-label">실패함요</span>
+            </button>
+          </div>
+        </div>
+
+        <button class="save-btn" id="saveBtn">저장</button>
+        <p class="save-hint" id="saveHint"></p>
+      </section>
+
+      <!-- 이번 달 요약 -->
+      <section class="card summary-card">
+        <h2 id="summaryTitle">이번 달 요약</h2>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <span class="summary-value" id="sumWeightChange">-</span>
+            <span class="summary-label">몸무게 변화</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-value" id="sumExerciseDays">-</span>
+            <span class="summary-label">운동한 날</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-value" id="sumAvgWater">-</span>
+            <span class="summary-label">평균 물 섭취</span>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div id="celebrateLayer" class="celebrate-layer" aria-hidden="true"></div>
+
+  <div id="praiseOverlay" class="praise-overlay" aria-hidden="true">
+    <img id="praiseImage" src="assets/praise.png" alt="칭찬 이미지" />
+  </div>
+
+  <div id="cheerOverlay" class="cheer-overlay" aria-hidden="true">
+    <img id="cheerImage" src="assets/cheer.png" alt="응원" />
+    <p class="cheer-text" id="cheerText"></p>
+  </div>
+
+  <img id="moodBurstImage" class="mood-burst-image" alt="" aria-hidden="true" />
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
