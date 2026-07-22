@@ -27,6 +27,11 @@
 
 * { box-sizing: border-box; }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 button, input, textarea, select {
   font-family: inherit;
 }
@@ -42,12 +47,22 @@ body {
   color: var(--ink);
   font-family: "Jua", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: contain;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+button {
+  touch-action: manipulation;
 }
 
 .app {
   max-width: 960px;
   margin: 0 auto;
-  padding: 56px 24px 80px;
+  padding: calc(56px + env(safe-area-inset-top)) 24px calc(80px + env(safe-area-inset-bottom));
 }
 
 /* ---------- Header ---------- */
@@ -58,7 +73,7 @@ body {
 }
 
 .top h1 {
-  font-size: 34px;
+  font-size: clamp(22px, 6.5vw, 34px);
   font-weight: 900;
   margin: 0 0 8px;
   letter-spacing: -0.02em;
@@ -67,8 +82,9 @@ body {
 .tagline {
   margin: 0;
   color: var(--ink-soft);
-  font-size: 15px;
+  font-size: clamp(12px, 3.4vw, 15px);
   font-weight: 600;
+  padding: 0 4px;
 }
 
 /* ---------- User switch ---------- */
@@ -89,6 +105,7 @@ body {
   border-radius: 999px;
   font-size: 14px;
   font-weight: 800;
+  white-space: nowrap;
   cursor: pointer;
   box-shadow: var(--shadow-xs);
   transition: transform 0.1s ease, box-shadow 0.1s ease;
@@ -162,18 +179,32 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   margin-bottom: 24px;
 }
 
+.calendar-header h2 {
+  font-size: clamp(15px, 4vw, 18px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: var(--bw) solid var(--ink);
   background: var(--card);
   font-size: 18px;
   font-weight: 800;
+  line-height: 1;
   color: var(--ink);
   cursor: pointer;
   width: 36px;
   height: 36px;
+  padding: 0;
+  flex-shrink: 0;
   border-radius: 50%;
   box-shadow: var(--shadow-xs);
   transition: transform 0.1s ease, box-shadow 0.1s ease;
@@ -325,6 +356,8 @@ body {
   font-weight: 800;
   padding: 5px 12px;
   border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
   cursor: pointer;
   box-shadow: var(--shadow-xs);
   transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
@@ -488,6 +521,7 @@ body {
   font-weight: 800;
   padding: 0 18px;
   border-radius: 12px;
+  white-space: nowrap;
   cursor: pointer;
   box-shadow: var(--shadow-xs);
   transition: transform 0.1s ease, box-shadow 0.1s ease;
@@ -508,7 +542,7 @@ body {
   border: var(--bw) solid var(--ink);
   border-radius: 12px;
   padding: 12px 14px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   background: var(--card);
   color: var(--ink);
@@ -697,6 +731,7 @@ body {
   color: var(--ink-soft);
   font-size: 13px;
   font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -728,7 +763,7 @@ body {
 }
 
 .onboarding-card h1 {
-  font-size: 28px;
+  font-size: clamp(20px, 6.5vw, 28px);
   font-weight: 900;
   margin: 0 0 8px;
   letter-spacing: -0.02em;
@@ -737,7 +772,7 @@ body {
 .onboarding-card .tagline {
   margin: 0 0 28px;
   color: var(--ink-soft);
-  font-size: 14px;
+  font-size: clamp(12px, 3.4vw, 14px);
   font-weight: 600;
 }
 
@@ -837,12 +872,14 @@ body {
   font-size: 12px;
   font-weight: 700;
   color: var(--ink);
+  white-space: nowrap;
 }
 
 .group-code-value {
   font-size: 14px;
   font-weight: 900;
   letter-spacing: 0.1em;
+  white-space: nowrap;
 }
 
 .copy-btn {
@@ -853,6 +890,8 @@ body {
   font-weight: 800;
   padding: 5px 12px;
   border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
   cursor: pointer;
 }
 
@@ -864,6 +903,7 @@ body {
   font-size: 13px;
   font-weight: 700;
   color: var(--ink-soft);
+  white-space: nowrap;
 }
 
 /* ---------- Friend status card ---------- */
