@@ -773,7 +773,7 @@ html.returning-session .boot-loading {
 
 /* ---------- Onboarding ---------- */
 
-.onboarding {
+.onboarding:not([hidden]) {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -1018,6 +1018,36 @@ html.returning-session .boot-loading {
   background: var(--yellow);
 }
 
+.kick-btn {
+  border: 2px solid var(--ink);
+  background: var(--card);
+  color: #e0397a;
+  font-size: 12.5px;
+  font-weight: 800;
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: var(--shadow-xs);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+  white-space: nowrap;
+}
+
+.kick-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--ink);
+  background: var(--pink-soft);
+}
+
+.kick-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.kick-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ---------- Cheer overlay ---------- */
 
 .cheer-overlay {
@@ -1079,6 +1109,17 @@ html.returning-session .boot-loading {
 .user-tab.active .me-badge {
   background: var(--ink);
   color: var(--pink);
+}
+
+.owner-badge {
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 900;
+  background: var(--yellow);
+  color: var(--ink);
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
 /* ---------- Read-only state ---------- */

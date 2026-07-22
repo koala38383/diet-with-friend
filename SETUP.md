@@ -24,7 +24,7 @@ service cloud.firestore {
       allow read, create: if true;
 
       match /members/{memberId} {
-        allow read, create, update: if true;
+        allow read, create, update, delete: if true;
 
         match /records/{date} {
           allow read, write: if true;
@@ -34,6 +34,8 @@ service cloud.firestore {
   }
 }
 ```
+
+> `members`에 `delete`가 포함되어야 그룹장이 멤버 내보내기(강퇴) 기능을 쓸 수 있어요. 이미 배포된 프로젝트라면 콘솔의 규칙 탭에서 `allow read, create, update: if true;`를 `allow read, create, update, delete: if true;`로 바꾸고 다시 게시하면 됩니다.
 
 > 참고: 별도 로그인 없이 "그룹 코드"만으로 참여하는 구조라 규칙도 인증 없이 열려 있습니다. 그룹 코드(5자리, 약 3,300만 개 조합)를 아는 사람만 접근할 수 있지만, 완전히 안전한 인증 시스템은 아니므로 민감한 정보는 기록하지 마세요.
 

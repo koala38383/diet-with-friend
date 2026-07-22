@@ -143,6 +143,7 @@ import {
   let monthRecords = {}; // {iso: record} for viewingMemberId + viewYear/viewMonth
   let unsubscribeMembers = null;
   let unsubscribeRecords = null;
+  let groupOwnerId = null; // creator of the group; falls back to earliest joiner for older groups without this field
   let draft = { weight: "", exerciseItems: [], water: 0, mood: null };
   let saveHintTimer = null;
   let trendRequestToken = 0;
@@ -238,13 +239,14 @@ import {
     createGroupBtn.disabled = true;
     obErrorEl.textContent = "";
     try {
+      const memberId = randomId();
       let code = null;
       for (let attempt = 0; attempt < 5; attempt++) {
         const candidate = generateCode();
         const ref = doc(db, "groups", candidate);
         const snap = await getDoc(ref);
         if (!snap.exists()) {
-          await setDoc(ref, { createdAt: serverTimestamp() });
+          await setDoc(ref, { createdAt: serverTimestamp(), ownerId: memberId });
           code = candidate;
           break;
         }
@@ -253,7 +255,6 @@ import {
         obErrorEl.textContent = "코드 생성에 실패했어요. 다시 시도해주세요.";
         return;
       }
-      const memberId = randomId();
       await setDoc(doc(db, "groups", code, "members", memberId), {
         name,
         joinedAt: serverTimestamp(),
@@ -318,6 +319,17 @@ import {
     location.reload();
   });
 
+  function handleRemovedFromGroup() {
+    if (unsubscribeMembers) unsubscribeMembers();
+    if (unsubscribeRecords) unsubscribeRecords();
+    Object.values(todayListeners).forEach((unsub) => unsub());
+    todayListeners = {};
+    clearIdentity();
+    identity = null;
+    alert("그룹장에 의해 그룹에서 제외되었어요.");
+    location.reload();
+  }
+
   copyCodeBtn.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(identity.groupCode);
@@ -336,11 +348,28 @@ import {
     appRootEl.hidden = false;
     viewingMemberId = identity.memberId;
     groupCodeValueEl.textContent = identity.groupCode;
+    loadGroupOwner();
     subscribeMembers();
     subscribeRecords();
     loadDraftForSelectedDate();
     renderCalendar();
     renderSummary();
+  }
+
+  async function loadGroupOwner() {
+    try {
+      const snap = await getDoc(doc(db, "groups", identity.groupCode));
+      groupOwnerId = (snap.exists() && snap.data().ownerId) || null;
+    } catch (e) {
+      groupOwnerId = null;
+    }
+    renderMemberTabs();
+    renderFriendStatus();
+  }
+
+  // groups created before the owner field existed fall back to their earliest joiner
+  function effectiveOwnerId() {
+    return groupOwnerId || (members[0] && members[0].id) || null;
   }
 
   // ================= Members (real-time) =================
@@ -355,8 +384,16 @@ import {
           const bt = b.joinedAt?.toMillis ? b.joinedAt.toMillis() : 0;
           return at - bt;
         });
+      if (members.length > 0 && !members.find((m) => m.id === identity.memberId)) {
+        handleRemovedFromGroup();
+        return;
+      }
       if (!members.find((m) => m.id === viewingMemberId)) {
         viewingMemberId = identity.memberId;
+        subscribeRecords();
+        loadDraftForSelectedDate();
+        renderCalendar();
+        renderSummary();
       }
       renderMemberTabs();
       memberCountEl.textContent = `그룹원 ${members.length}명`;
@@ -367,11 +404,13 @@ import {
 
   function renderMemberTabs() {
     userSwitchEl.innerHTML = "";
+    const ownerId = effectiveOwnerId();
     members.forEach((m) => {
       const isMe = m.id === identity.memberId;
+      const isOwner = m.id === ownerId;
       const btn = document.createElement("button");
       btn.className = "user-tab" + (m.id === viewingMemberId ? " active" : "");
-      btn.innerHTML = `${escapeHtml(m.name)}${isMe ? '<span class="me-badge">나</span><span class="edit-icon">✎</span>' : ""}`;
+      btn.innerHTML = `${escapeHtml(m.name)}${isOwner ? '<span class="owner-badge">👑 그룹장</span>' : ""}${isMe ? '<span class="me-badge">나</span><span class="edit-icon">✎</span>' : ""}`;
       btn.addEventListener("click", () => {
         if (isMe && m.id === viewingMemberId) {
           renameSelf();
@@ -432,6 +471,7 @@ import {
 
   function renderFriendStatus() {
     const friends = members.filter((m) => m.id !== identity.memberId);
+    const isOwnerViewing = identity.memberId === effectiveOwnerId();
     friendStatusListEl.innerHTML = "";
 
     if (friends.length === 0) {
@@ -472,6 +512,15 @@ import {
       cheerBtn.addEventListener("click", () => sendCheer(friend.id, cheerBtn));
       actions.appendChild(cheerBtn);
 
+      if (isOwnerViewing) {
+        const kickBtn = document.createElement("button");
+        kickBtn.className = "kick-btn";
+        kickBtn.type = "button";
+        kickBtn.textContent = "내보내기";
+        kickBtn.addEventListener("click", () => kickMember(friend.id, friend.name, kickBtn));
+        actions.appendChild(kickBtn);
+      }
+
       row.appendChild(actions);
       friendStatusListEl.appendChild(row);
     });
@@ -496,6 +545,21 @@ import {
     } catch (e) {
       console.error(e);
       btnEl.textContent = originalText;
+      btnEl.disabled = false;
+    }
+  }
+
+  async function kickMember(targetMemberId, targetName, btnEl) {
+    const ok = confirm(`${targetName}님을 그룹에서 내보낼까요? 이 작업은 되돌릴 수 없어요.`);
+    if (!ok) return;
+    btnEl.disabled = true;
+    try {
+      const recordsSnap = await getDocs(recordsCollection(targetMemberId));
+      await Promise.all(recordsSnap.docs.map((d) => deleteDoc(d.ref)));
+      await deleteDoc(doc(db, "groups", identity.groupCode, "members", targetMemberId));
+    } catch (e) {
+      console.error(e);
+      alert("내보내지 못했어요. 다시 시도해주세요.");
       btnEl.disabled = false;
     }
   }
