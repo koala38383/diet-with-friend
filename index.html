@@ -23,8 +23,25 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
+<script>
+  // 저장된 세션이 있으면 온보딩 화면이 잠깐 보였다가 사라지는 깜빡임 없이
+  // 바로 로딩 화면으로 전환한다 (app.js가 Firebase를 불러오기 전, 최대한 빨리 실행됨)
+  (function () {
+    try {
+      var raw = localStorage.getItem("together-diet-identity-v2");
+      var parsed = raw ? JSON.parse(raw) : null;
+      if (parsed && parsed.groupCode && parsed.memberId) {
+        document.documentElement.classList.add("returning-session");
+      }
+    } catch (e) {}
+  })();
+</script>
 </head>
 <body>
+
+  <div class="boot-loading" id="bootLoading" aria-hidden="true">
+    <div class="boot-spinner"></div>
+  </div>
 
   <!-- ================= 온보딩 (그룹 생성/참여) ================= -->
   <div class="onboarding" id="onboarding">

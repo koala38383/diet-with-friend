@@ -1,5 +1,11 @@
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const CACHE_NAME = `diet-with-friend-${CACHE_VERSION}`;
+
+// version-pinned Firebase SDK URLs (immutable — safe to cache-first)
+const FIREBASE_SDK_URLS = [
+  "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js",
+  "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js",
+];
 
 const PRECACHE_URLS = [
   "./",
@@ -15,6 +21,7 @@ const PRECACHE_URLS = [
   "./assets/mood-failed.png",
   "./assets/praise.png",
   "./assets/cheer.png",
+  ...FIREBASE_SDK_URLS,
 ];
 
 self.addEventListener("install", (event) => {
@@ -38,9 +45,12 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
 
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return; // let Firebase/Google/font requests hit the network directly
 
-  const isStaticAsset = /\.(?:png|jpg|jpeg|svg|ico|webp)$/.test(url.pathname);
+  const isFirebaseSdk = FIREBASE_SDK_URLS.includes(request.url);
+
+  if (url.origin !== self.location.origin && !isFirebaseSdk) return; // let Firestore/Google/font requests hit the network directly
+
+  const isStaticAsset = isFirebaseSdk || /\.(?:png|jpg|jpeg|svg|ico|webp)$/.test(url.pathname);
 
   if (isStaticAsset) {
     event.respondWith(

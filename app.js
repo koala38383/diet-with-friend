@@ -79,6 +79,7 @@ import {
 
   const onboardingEl = document.getElementById("onboarding");
   const appRootEl = document.getElementById("appRoot");
+  const bootLoadingEl = document.getElementById("bootLoading");
   const configWarningEl = document.getElementById("configWarning");
 
   const obTabCreate = document.getElementById("obTabCreate");
@@ -331,6 +332,7 @@ import {
 
   function enterApp() {
     onboardingEl.hidden = true;
+    bootLoadingEl.style.display = "none";
     appRootEl.hidden = false;
     viewingMemberId = identity.memberId;
     groupCodeValueEl.textContent = identity.groupCode;
